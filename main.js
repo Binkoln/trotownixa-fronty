@@ -4,7 +4,7 @@ import * as GUI from '@babylonjs/gui/2D';
 import '@babylonjs/loaders/STL';
 
 const canvas = document.getElementById('renderCanvas');
-const eng ine = new BABYLON.Engine(canvas);
+const engine = new BABYLON.Engine(canvas);
 
 const createScene = async function() {
   const scene = new BABYLON.Scene(engine);
@@ -28,7 +28,9 @@ const removeMesh = () => {
 }
 
 const addLayer = () =>{
-  console.log('x');
+  fetch("http://localhost:8888/addLayer")
+  .then((response) => response.json())
+  .then((json) => console.log(json));
 }
   
 //buttons
