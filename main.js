@@ -4,7 +4,7 @@ import * as GUI from '@babylonjs/gui/2D';
 import '@babylonjs/loaders/STL';
 
 const canvas = document.getElementById('renderCanvas');
-const engine = new BABYLON.Engine(canvas);
+const eng ine = new BABYLON.Engine(canvas);
 
 const createScene = async function() {
   const scene = new BABYLON.Scene(engine);
@@ -26,6 +26,10 @@ const loadMesh = () => {
 const removeMesh = () => {
     scene.getMeshByName('stlmesh').dispose()
 }
+
+const addLayer = () =>{
+  console.log('x');
+}
   
 //buttons
 let advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
@@ -33,10 +37,12 @@ let advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("GUI", true,
 let loadedGUI = await advancedTexture.parseFromSnippetAsync("7ID8B3#13");
 
 const loadBtn = advancedTexture.getControlByName('loadBtn');
+const addLayerBtn = advancedTexture.getControlByName('addLayerBtn');
 const clearBtn = advancedTexture.getControlByName('clearBtn');
 
 //events
 loadBtn.onPointerClickObservable.add(loadMesh);
+addLayerBtn.onPointerClickObservable.add(addLayer);
 clearBtn.onPointerClickObservable.add(removeMesh);
 
 //Inspector.Show(scene, {});
