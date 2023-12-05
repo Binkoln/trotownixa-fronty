@@ -18,8 +18,8 @@ const loadMesh = () => {
 
   const addLayer = async () => {
     var requestData = { "color": "0xFF00FF", "type": "box"};
-    
-    await fetch("http://localhost:8888/addLayer", {
+
+    await fetch("http://localhost:8888/add/layer", {
       method: "POST",
       body: JSON.stringify(requestData)
     })
