@@ -29,7 +29,8 @@ const loadMesh = () => {
       const valuesArray = Object.values(JSON.parse(jsonDataString));
   
   const objDataURL = "data:;base64," + valuesArray;
-  BABYLON.SceneLoader.Append('', objDataURL, scene, undefined, undefined, undefined, ".stl");
+  const object = BABYLON.SceneLoader.Append('', objDataURL, scene, undefined, undefined, undefined, ".stl");
+  
   };
 
   const highlightMesh = (mesh) => {
@@ -54,8 +55,9 @@ const loadMesh = () => {
         // Zaznacz nowy mesh
         selectedMesh = pickResult.pickedMesh;
           highlightMesh(selectedMesh);
-  
-          console.log('Zaznaczony mesh:', selectedMesh.name);
+          let idMesh = scene.getMeshByUniqueId(selectedMesh.uniqueId)?.uniqueId;
+          console.log('id: ' + idMesh);
+            
       }
     }
 
@@ -84,7 +86,7 @@ addLayerBtn.onPointerClickObservable.add(addLayer);
 clearBtn.onPointerClickObservable.add(removeMesh);
 canvas.addEventListener('click', handleMouseClickOnMesh);
 
-//Inspector.Show(scene, {});
+// Inspector.Show(scene, {});
 
 return scene;
 }
