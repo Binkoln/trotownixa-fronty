@@ -12,3 +12,18 @@ html, body{
     height: 100%;
     touch-action: none;
 }
+
+.modal{
+    width: 240px;
+    height: 400px;
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    background-color: white;
+}
+
+.modal p{
+    width: 30px;
+    color: black;
+    font-size: 15px;
+}
