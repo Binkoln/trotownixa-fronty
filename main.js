@@ -57,7 +57,7 @@ const getMeshData = (meshData) => {
 
 const setLayer = (meshData) =>{
   
-  var jsonString = JSON.stringify(meshParams);
+  const jsonString = JSON.stringify(meshParams);
   console.log(meshParams)
   console.log(jsonString);
 
