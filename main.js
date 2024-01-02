@@ -28,6 +28,29 @@ const objDataURL = "data:;base64," + valuesArray;
 const object = BABYLON.SceneLoader.Append('', objDataURL, scene, undefined, undefined, undefined, ".stl");
 };
 
+const setLayer = async(meshData) =>{
+  
+  const jsonString = JSON.stringify(meshParams);
+  console.log(meshParams)
+  console.log(jsonString);
+  let requestData = meshParams;
+
+  await fetch("http://localhost:8888/modify/layer", {
+    method: "POST",
+    body: JSON.stringify(requestData)
+  })
+    .then((response) => response.json())
+    .then((json) => {
+      jsonData = json;
+    })
+    .catch((error) => {
+      console.error('Wystąpił błąd:', error);
+    });
+    const jsonDataString = JSON.stringify(jsonData);
+    const valuesArray = Object.values(JSON.parse(jsonDataString));
+
+}
+
 
 // dane mesha
 const getMeshData = (meshData) => {
@@ -55,13 +78,7 @@ const getMeshData = (meshData) => {
 }
   
 
-const setLayer = (meshData) =>{
-  
-  const jsonString = JSON.stringify(meshParams);
-  console.log(meshParams)
-  console.log(jsonString);
 
-}
 
 //laduje z pliku mesh
   const loadMesh = () => {   
@@ -191,8 +208,8 @@ const scene = await createScene();
 
 const gizmoManager = new BABYLON.GizmoManager(scene);
 gizmoManager.positionGizmoEnabled = true;
-gizmoManager.rotationGizmoEnabled = true;
-gizmoManager.scaleGizmoEnabled = true;
+gizmoManager.rotationGizmoEnabled = false;
+gizmoManager.scaleGizmoEnabled = false;
 gizmoManager.updateGizmoRotationToMatchAttachedMesh = false;
 
 engine.runRenderLoop(function(){
