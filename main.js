@@ -1,221 +1,342 @@
-import * as BABYLON from '@babylonjs/core';
-import { Inspector } from '@babylonjs/inspector';
-import * as GUI from '@babylonjs/gui/2D';
-import '@babylonjs/loaders/STL';
+import * as BABYLON from "@babylonjs/core";
+import { Inspector } from "@babylonjs/inspector";
+import * as GUI from "@babylonjs/gui/2D";
+import "@babylonjs/loaders/STL";
+import { StandardMaterial } from "babylonjs";
 
-const canvas = document.getElementById('renderCanvas');
+const canvas = document.getElementById("renderCanvas");
 const engine = new BABYLON.Engine(canvas, true);
-let jsonData, selectedMesh = null, stlName='cake.stl', meshParams = {};
+let jsonData,
+  stlName = "cake.stl",
+  meshParams = {};
 
-const addLayer = async () => {
-  let requestData = { "color": "0xFF00FF", "type": "box"};
-
+const addLayer = async (type) => {
+  let requestData = { color: "0xFF00FF", type: type };
   await fetch("http://localhost:8888/add/layer", {
     method: "POST",
-    body: JSON.stringify(requestData)
+    body: JSON.stringify(requestData),
   })
     .then((response) => response.json())
     .then((json) => {
       jsonData = json;
     })
     .catch((error) => {
-      console.error('Wystąpił błąd:', error);
+      console.error("Wystąpił błąd:", error);
     });
-    const jsonDataString = JSON.stringify(jsonData);
-    const valuesArray = Object.values(JSON.parse(jsonDataString));
+  const jsonDataString = JSON.stringify(jsonData);
+  const valuesArray = Object.values(JSON.parse(jsonDataString));
 
-const objDataURL = "data:;base64," + valuesArray;
-const object = BABYLON.SceneLoader.Append('', objDataURL, scene, undefined, undefined, undefined, ".stl");
+  const objDataURL = "data:;base64," + valuesArray;
+  const object = BABYLON.SceneLoader.Append(
+    "",
+    objDataURL,
+    scene,
+    undefined,
+    undefined,
+    undefined,
+    ".stl"
+  );
 };
-
-const setLayer = async(meshData) =>{
-  
-  const jsonString = JSON.stringify(meshParams);
-  console.log(meshParams)
-  console.log(jsonString);
-  let requestData = meshParams;
-
-  await fetch("http://localhost:8888/modify/layer", {
-    method: "POST",
-    body: JSON.stringify(requestData)
-  })
-    .then((response) => response.json())
-    .then((json) => {
-      jsonData = json;
-    })
-    .catch((error) => {
-      console.error('Wystąpił błąd:', error);
-    });
-    const jsonDataString = JSON.stringify(jsonData);
-    const valuesArray = Object.values(JSON.parse(jsonDataString));
-
-}
-
 
 // dane mesha
 const getMeshData = (meshData) => {
-   
   meshParams = {
     scale: {
       x: meshData.scaling.x,
       y: meshData.scaling.y,
-      z: meshData.scaling.z
+      z: meshData.scaling.z,
     },
     rotation: {
       x: meshData.rotation.x,
       y: meshData.rotation.y,
-      z: meshData.rotation.z
+      z: meshData.rotation.z,
     },
     position: {
       x: meshData.position.x,
       y: meshData.position.y,
-      z: meshData.position.z
+      z: meshData.position.z,
     },
-    name: meshData.name
-    
- };
+    name: meshData.name,
+    color: meshData.color,
+  };
+};
 
-}
-  
-
-
+const setLayer = (meshData) => {
+  const jsonString = JSON.stringify(meshParams);
+  console.log(meshParams);
+  console.log(jsonString);
+};
 
 //laduje z pliku mesh
-  const loadMesh = () => {   
-    BABYLON.SceneLoader.ImportMesh(
-      '',
-      '/assets/', 
-      stlName, 
-      scene
-    );
-    
-  }
-  const highlightMesh = (mesh) => {
-    if (!mesh.material) {
-      mesh.material = new BABYLON.StandardMaterial('highlightMaterial', scene);
-    }
-  }
+const loadMesh = () => {
+  BABYLON.SceneLoader.ImportMesh("", "/assets/", stlName, scene);
+};
 
-
-  
-const createScene = async function() {
+const createScene = async function () {
   const scene = new BABYLON.Scene(engine);
   scene.clearColor = new BABYLON.Color3(0.1, 0.2, 0.2);
-  scene.createDefaultCameraOrLight(true,false,true);
-  scene.activeCamera.position = new BABYLON.Vector3(50, 50, 50); 
+  scene.createDefaultCameraOrLight(true, false, true);
+  scene.activeCamera.position = new BABYLON.Vector3(50, 50, 50);
 
-  
-//gui
-const advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
-const loadedGUI = await advancedTexture.parseFromSnippetAsync("7ID8B3#49");
-const addLayerBtn = advancedTexture.getControlByName('addLayerBtn');
-const setLayerBtn = advancedTexture.getControlByName('setLayerBtn');
-const addDecorationBtn = advancedTexture.getControlByName('addDecorationBtn');
-const downloadBtn = advancedTexture.getControlByName('downloadBtn');
-const clearBtn = advancedTexture.getControlByName('clearBtn');
-const loadBtn = advancedTexture.getControlByName('loadBtn');
-const colorPicker = advancedTexture.getControlByName('colorPicker')
-const sliderX = advancedTexture.getControlByName('SliderX');
-const sliderY = advancedTexture.getControlByName('SliderY');
-const sliderZ = advancedTexture.getControlByName('SliderZ');
+  const pointLight = new BABYLON.PointLight(
+    "pointLight",
+    new BABYLON.Vector3(-40, 100, -25),
+    scene
+  );
+  pointLight.intensity = 1;
 
-// wartosci min/max slidera
-const minSliderValue = 0; 
-const maxSliderValue = 3;
-const sliders = [sliderX, sliderY, sliderZ];
-
-sliders.forEach((slider) => {
-  slider.minimum = minSliderValue;
-  slider.maximum = maxSliderValue;
-});
-
-// skalowanie mesha
-const updateSliders = (mesh) => {
-  if (mesh) {
-    sliderX.onValueChangedObservable.add((value) => {
-      mesh.scaling.x = value; 
-    });
-
-    sliderY.onValueChangedObservable.add((value) => {
-      mesh.scaling.y = value;
-    });
-    
-    sliderZ.onValueChangedObservable.add((value) => {
-      mesh.scaling.z = value;
-    });
+  // table object
+  BABYLON.SceneLoader.ImportMesh(
+    "",
+    "assets/",
+    "table.stl",
+    scene,
+    function (newMeshes) {
+      let loadedMesh = newMeshes[0];
+      loadedMesh.scaling = new BABYLON.Vector3(30, 15, 30);
+      loadedMesh.position = new BABYLON.Vector3(0, -13, 10);
+      const material = new BABYLON.StandardMaterial("material", scene);
+      material.diffuseTexture = new BABYLON.Texture(
+        "assets/texture.jpg",
+        scene
+      );
+      loadedMesh.material = material;
     }
-}
+  );
 
-const addDecoration = () =>{
-  console.log('addDec');
-}
-// wybor mesh, pobieranie danych do modala, przekazuje zaznaczony mesh do skalowania
-const handleMouseClickOnMesh = (event) => {
+  //gui
+  const advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+    "GUI",
+    true,
+    scene
+  );
+  const loadedGUI = await advancedTexture.parseFromSnippetAsync("7ID8B3#62");
+  const addBoxBtn = advancedTexture.getControlByName("addBoxBtn");
+  const addTorusBtn = advancedTexture.getControlByName("addTorusBtn");
+  // const addLayerBtn = advancedTexture.getControlByName('addLayerBtn')
+  const addCylinderBtn = advancedTexture.getControlByName("addCylinderBtn");
+  const setLayerBtn = advancedTexture.getControlByName("setLayerBtn");
+  const addDecorationBtn = advancedTexture.getControlByName("addDecorationBtn");
+  const makeDec = advancedTexture.getControlByName('makeDec')
+  const roundBtn = advancedTexture.getControlByName("roundBtn");
+  const downloadBtn = advancedTexture.getControlByName("downloadBtn");
+  const clearBtn = advancedTexture.getControlByName("clearBtn");
+  const loadBtn = advancedTexture.getControlByName("loadBtn");
+  const colorPicker = advancedTexture.getControlByName("colorPicker");
+  const sliderX = advancedTexture.getControlByName("SliderX");
+  const sliderY = advancedTexture.getControlByName("SliderY");
+  const sliderZ = advancedTexture.getControlByName("SliderZ");
 
-  const pickResult = scene.pick(event.clientX, event.clientY);
+  // wartosci min/max slidera
+  const minSliderValue = 0;
+  const maxSliderValue = 3;
+  const sliders = [sliderX, sliderY, sliderZ];
+
+  sliders.forEach((slider) => {
+    slider.minimum = minSliderValue;
+    slider.maximum = maxSliderValue;
+  });
+
+  //skalowanie mesha
+  const updateSliders = (mesh) => {
+    if (mesh) {
+      sliderX.onValueChangedObservable.add((value) => {
+        mesh.scaling.x = value;
+      });
+
+      sliderY.onValueChangedObservable.add((value) => {
+        mesh.scaling.y = value;
+      });
+
+      sliderZ.onValueChangedObservable.add((value) => {
+        mesh.scaling.z = value;
+      });
+    }
+  };
+
+  const addDecoration = () => {
+    console.log("addDec");
+  };
+
+  const roundCorners = () => {
+    console.log("roundcorners");
+  };
+
+  let meshId = 1000;
+  const assignMeshName = (mesh) => {
+    if (mesh.name === "stlmesh") {
+      mesh.name = meshId;
+      meshId++;
+    }
+  };
+
+  const showModal = (meshData) => {
+    // Utwórz modal
+    const modal = document.createElement("div");
+    modal.className = "modal";
+    document.body.appendChild(modal);
+    let i;
+    // Utwórz pola tekstowe dla X, Y, Z
+    for (i = 0; i < 4; i++) {
+      const input = createTextField(`input${i}`, "X,Y,Z");
+      modal.appendChild(input);
+    }
+
+    const addButton = document.createElement("button");
+    addButton.textContent = "Dodaj pole";
+    addButton.addEventListener("click", () => {
+      const newField = createTextField(
+        `input${modal.children.length}`,
+        "X,Y,Z"
+      );
+      modal.insertBefore(newField, addButton);
+    });
+    modal.appendChild(addButton);
+    // Utwórz przycisk "Pobierz wartości"
+    const getValuesButton = document.createElement("button");
+    getValuesButton.textContent = "Pobierz wartości";
+    getValuesButton.addEventListener("click", () => {
+      const inputValues = getModalInputValues(modal);
+      console.log("Wartości z inputów:", inputValues);
+    });
+    modal.appendChild(getValuesButton);
+  };
+
+  // Funkcja pomocnicza do tworzenia pól tekstowych
+  const createTextField = (id, label) => {
+    const container = document.createElement("div");
+
+    // Utwórz etykietę
+    const labelElement = document.createElement("label");
+    labelElement.textContent = label;
+    container.appendChild(labelElement);
+
+    // Utwórz pole tekstowe
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = id;
+    container.appendChild(input);
+
+    return container;
+  };
+
+  // Funkcja pomocnicza do pobierania wartości z inputów w modalu
+  const getModalInputValues = (modal) => {
+    const inputValues = [];
+    const inputElements = modal.querySelectorAll("input[type='text']");
+
+    inputElements.forEach((input) => {
+      inputValues.push(input.value);
+    });
+
+    // Utwórz obiekt JSON z tablicą wartości
+    const jsonObject = {
+      values: inputValues,
+    };
+
+    // Zamień obiekt JSON na tekst JSON
+    const jsonString = JSON.stringify(jsonObject);
+
+    // Wyświetl tekst JSON w konsoli
+    console.log("Wartości z inputów (JSON):", jsonString);
+
+    return jsonString;
+  };
+
+  // wybor mesh, pobieranie danych do modala, przekazuje zaznaczony mesh do skalowania
+  let pickedMesh = null,
+    selectedMesh;
+
+  const handleMouseClickOnMesh = (event) => {
+    const pickResult = scene.pick(event.clientX, event.clientY);
     if (pickResult && pickResult.hit) {
-      const pickedMesh = pickResult.pickedMesh;
+      pickedMesh = pickResult.pickedMesh;
       updateSliders(pickedMesh);
-      
+      assignMeshName(pickedMesh);
+      // dodaj material
+      if (!pickedMesh.material) {
+        pickedMesh.material = new BABYLON.StandardMaterial(
+          "standardMaterial",
+          scene
+        );
+      }
+      selectedMesh = pickedMesh;
+
       getMeshData({
         scaling: pickedMesh.scaling,
         rotation: pickedMesh.rotation,
         position: pickedMesh.position,
-        name: pickedMesh.name   
+        name: pickedMesh.name,
+        color:
+          pickedMesh.material && pickedMesh.material.diffuseColor
+            ? pickedMesh.material.diffuseColor
+            : null,
       });
-      // Anuluj zaznaczenie
-    if (selectedMesh) {
-      selectedMesh.material = new BABYLON.StandardMaterial('whiteMaterial', scene);
-      selectedMesh.material.diffuseColor = new BABYLON.Color3(1, 1, 1); // Biały kolor
-      }
-      // Zaznacz nowy mesh
-      selectedMesh = pickResult.pickedMesh;
-      highlightMesh(selectedMesh);
-      let idMesh = scene.getMeshByUniqueId(selectedMesh.uniqueId)?.uniqueId;
-      console.log('id: ' + idMesh);
-          
+
+      const meshName = pickedMesh.name;
+      console.log("Mesh name: " + meshName);
     }
-  }
+  };
+
+  const removeMesh = () => {
+    if (pickedMesh) {
+      const meshToRemove = scene.getMeshByName(pickedMesh.name);
+      if (meshToRemove) {
+        console.log(pickedMesh.name);
+        meshToRemove.dispose();
+        pickedMesh = null;
+      } else {
+        console.log(`Mesh "${pickedMesh.name}" nie znaleziono.`);
+      }
+    } else {
+      console.log("Nie zaznaczono mesh.");
+    }
+  };
 
   const downloadProject = () => {
-    console.log('downloadProject')
-  }
+    console.log("downloadProject");
+  };
 
-  
-  const removeMesh = () => {
-    scene.getMeshByName('stlmesh').dispose()
-}
-//events
-loadBtn.onPointerClickObservable.add(loadMesh);
-addLayerBtn.onPointerClickObservable.add(addLayer);
-setLayerBtn.onPointerClickObservable.add(setLayer);
-clearBtn.onPointerClickObservable.add(removeMesh);
-downloadBtn.onPointerClickObservable.add(downloadProject);
-addDecorationBtn.onPointerClickObservable.add(addDecoration);
-canvas.addEventListener('click', handleMouseClickOnMesh);
-colorPicker.onValueChangedObservable.add((value) => {
-  if (selectedMesh) {
-    // ustaw kolor mesha
-    selectedMesh.material.diffuseColor = new BABYLON.Color3(value.r, value.g, value.b);
-  }
-});
-           
-return scene;
-}
+  //events
+  loadBtn.onPointerClickObservable.add(loadMesh);
+
+  setLayerBtn.onPointerClickObservable.add(setLayer);
+  // addLayerBtn.onPointerClickObservable.add(addLayer);
+  addBoxBtn.onPointerClickObservable.add(() => addLayer("box"));
+  addTorusBtn.onPointerClickObservable.add(() => addLayer("torus"));
+  addCylinderBtn.onPointerClickObservable.add(() => addLayer("cylinder"));
+  addDecorationBtn.onPointerClickObservable.add(addDecoration);
+  makeDec.onPointerClickObservable.add(showModal)
+  roundBtn.onPointerClickObservable.add(roundCorners);
+  clearBtn.onPointerClickObservable.add(removeMesh);
+  downloadBtn.onPointerClickObservable.add(downloadProject);
+
+  colorPicker.onValueChangedObservable.add((value) => {
+    if (selectedMesh) {
+      // ustaw kolor mesha
+      selectedMesh.material.diffuseColor = new BABYLON.Color3(
+        value.r,
+        value.g,
+        value.b
+      );
+    }
+  });
+  canvas.addEventListener("click", handleMouseClickOnMesh);
+  return scene;
+};
 
 const scene = await createScene();
-
 
 const gizmoManager = new BABYLON.GizmoManager(scene);
 gizmoManager.positionGizmoEnabled = true;
 gizmoManager.rotationGizmoEnabled = false;
-gizmoManager.scaleGizmoEnabled = false;
+gizmoManager.scaleGizmoEnabled = true;
 gizmoManager.updateGizmoRotationToMatchAttachedMesh = false;
 
-engine.runRenderLoop(function(){
+engine.runRenderLoop(function () {
   scene.render();
 });
 
-window.addEventListener('resize',function(){
+window.addEventListener("resize", function () {
   engine.resize();
 });
