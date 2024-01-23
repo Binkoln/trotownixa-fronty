@@ -158,7 +158,34 @@ const createScene = async function () {
     console.log("addDec");
   };
 
-  const roundCorners = () => {
+  const roundCorners = async() => {
+    let requestData = { id: meshParams.name };
+    await fetch("http://localhost:8888/round/layer", {
+      method: "POST",
+      body: JSON.stringify(requestData),
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        jsonData = json;
+      })
+      .catch((error) => {
+        console.error("Wystąpił błąd:", error);
+      });
+    const jsonDataString = JSON.stringify(jsonData);
+    const valuesArray = Object.values(JSON.parse(jsonDataString));
+  
+    const objDataURL = "data:;base64," + valuesArray;
+    const object = BABYLON.SceneLoader.Append(
+      "",
+      objDataURL,
+      scene,
+      undefined,
+      undefined,
+      undefined,
+      ".stl"
+    );
+
+
     console.log("roundcorners");
   };
 
