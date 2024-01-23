@@ -94,7 +94,7 @@ const createScene = async function () {
     function (newMeshes) {
       let loadedMesh = newMeshes[0];
       loadedMesh.scaling = new BABYLON.Vector3(30, 15, 30);
-      loadedMesh.position = new BABYLON.Vector3(0, -13, 10);
+      loadedMesh.position = new BABYLON.Vector3(5, -13, 9);
       const material = new BABYLON.StandardMaterial("material", scene);
       material.diffuseTexture = new BABYLON.Texture(
         "assets/texture.jpg",
@@ -199,7 +199,13 @@ const createScene = async function () {
       const inputValues = getModalInputValues(modal);
       console.log("Wartości z inputów:", inputValues);
     });
+    getValuesButton.addEventListener('click', () => closeModal(modal));
     modal.appendChild(getValuesButton);
+    
+  };
+
+  const closeModal = (modal) => {
+    document.body.removeChild(modal);
   };
 
   // Funkcja pomocnicza do tworzenia pól tekstowych
