@@ -182,7 +182,12 @@ const createScene = async function () {
       "",
       objDataURL,
       scene,
-      (scene) => {scene.getMeshByName("stlmesh").name = prevId;},
+      (scene) => {
+      scene.getMeshByName("stlmesh").position.x = meshParams.position.x;
+      scene.getMeshByName("stlmesh").position.y = meshParams.position.y;
+      scene.getMeshByName("stlmesh").position.z = meshParams.position.z;
+      scene.getMeshByName("stlmesh").name = prevId;
+    },
       undefined,
       undefined,
       ".stl"
@@ -391,7 +396,7 @@ const createScene = async function () {
         console.error("Wystąpił błąd:", error);
       });
 
-      
+
     const jsonDataString = JSON.stringify(jsonData);
 
 
