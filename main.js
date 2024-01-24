@@ -93,6 +93,7 @@ const createScene = async function () {
     scene,
     function (newMeshes) {
       let loadedMesh = newMeshes[0];
+      loadedMesh.name="tablee";
       loadedMesh.scaling = new BABYLON.Vector3(30, 15, 30);
       loadedMesh.position = new BABYLON.Vector3(5, -13, 9);
       const material = new BABYLON.StandardMaterial("material", scene);
@@ -159,7 +160,9 @@ const createScene = async function () {
   };
 
   const roundCorners = async() => {
-    let requestData = { id: meshParams.name };
+
+    let prevId = meshParams.name;
+    let requestData = { id: prevId };
     await fetch("http://localhost:8888/round/layer", {
       method: "POST",
       body: JSON.stringify(requestData),
@@ -179,11 +182,15 @@ const createScene = async function () {
       "",
       objDataURL,
       scene,
-      undefined,
+      (scene) => {scene.getMeshByName("stlmesh").name = prevId;},
       undefined,
       undefined,
       ".stl"
     );
+
+    
+
+    removeMesh(prevId);
 
 
     console.log("roundcorners");
@@ -222,8 +229,50 @@ const createScene = async function () {
     // Utwórz przycisk "Pobierz wartości"
     const getValuesButton = document.createElement("button");
     getValuesButton.textContent = "Pobierz wartości";
-    getValuesButton.addEventListener("click", () => {
+    getValuesButton.addEventListener("click", async () => {
       const inputValues = getModalInputValues(modal);
+
+
+
+
+
+
+
+      let requestData = { points: JSON.parse(inputValues)['values']  };
+      await fetch("http://localhost:8888/create/from/points", {
+        method: "POST",
+        body: JSON.stringify(requestData),
+      })
+        .then((response) => response.json())
+        .then((json) => {
+          jsonData = json;
+        })
+        .catch((error) => {
+          console.error("Wystąpił błąd:", error);
+        });
+      const jsonDataString = JSON.stringify(jsonData);
+      const valuesArray = Object.values(JSON.parse(jsonDataString));
+    
+      const objDataURL = "data:;base64," + valuesArray;
+      const object = BABYLON.SceneLoader.Append(
+        "",
+        objDataURL,
+        scene,
+        undefined,
+        undefined,
+        undefined,
+        ".stl"
+      );
+
+
+
+
+
+
+
+
+
+
       console.log("Wartości z inputów:", inputValues);
     });
     getValuesButton.addEventListener('click', () => closeModal(modal));
@@ -326,8 +375,28 @@ const createScene = async function () {
     }
   };
 
-  const downloadProject = () => {
+  const downloadProject = async() => {
+
+
+    let requestData = {   };
+    await fetch("http://localhost:8888/project/save", {
+      method: "POST",
+      body: JSON.stringify(requestData),
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        jsonData = json;
+      })
+      .catch((error) => {
+        console.error("Wystąpił błąd:", error);
+      });
+
+      
+    const jsonDataString = JSON.stringify(jsonData);
+
+
     console.log("downloadProject");
+    console.log(jsonDataString);
   };
 
   //events
