@@ -27,15 +27,28 @@ const addLayer = async (type) => {
   const valuesArray = Object.values(JSON.parse(jsonDataString));
 
   const objDataURL = "data:;base64," + valuesArray;
-  const object = BABYLON.SceneLoader.Append(
+  const object = await BABYLON.SceneLoader.Append(
     "",
     objDataURL,
     scene,
-    undefined,
+    (scene) => {
+      const object = scene.getMeshByName('stlmesh');
+      if (object) {
+        object.position.y = 20;
+      } else {
+        console.error("Nie znaleziono siatki o nazwie 'stl' w załadowanej scenie.");
+      }
+    },
     undefined,
     undefined,
     ".stl"
   );
+ 
+  
+
+
+  
+ 
 };
 
 // dane mesha
@@ -69,7 +82,19 @@ const setLayer = (meshData) => {
 
 //laduje z pliku mesh
 const loadMesh = () => {
-  BABYLON.SceneLoader.ImportMesh("", "/assets/", stlName, scene);
+  BABYLON.SceneLoader.Append(
+    "/assets/",  
+    "candle.stl", 
+    scene,
+    (scene) => {
+      const object = scene.getMeshByName('stlmesh');
+      if (object) {
+        object.position.y = 20;
+      } else {
+        console.error("Nie znaleziono siatki o nazwie 'stl' w załadowanej scenie.");
+      }
+    }
+  );
 };
 
 const createScene = async function () {
@@ -94,7 +119,7 @@ const createScene = async function () {
     function (newMeshes) {
       let loadedMesh = newMeshes[0];
       loadedMesh.name="tablee";
-      loadedMesh.scaling = new BABYLON.Vector3(30, 15, 30);
+      loadedMesh.scaling = new BABYLON.Vector3(40, 15, 40);
       loadedMesh.position = new BABYLON.Vector3(5, -13, 9);
       const material = new BABYLON.StandardMaterial("material", scene);
       material.diffuseTexture = new BABYLON.Texture(
@@ -111,9 +136,11 @@ const createScene = async function () {
     true,
     scene
   );
-  const loadedGUI = await advancedTexture.parseFromSnippetAsync("7ID8B3#62");
+  const loadedGUI = await advancedTexture.parseFromSnippetAsync("7ID8B3#63");
   const addBoxBtn = advancedTexture.getControlByName("addBoxBtn");
   const addTorusBtn = advancedTexture.getControlByName("addTorusBtn");
+  const scaleBtn = advancedTexture.getControlByName("scaleBtn");
+  const moveBtn = advancedTexture.getControlByName("moveBtn");
   // const addLayerBtn = advancedTexture.getControlByName('addLayerBtn')
   const addCylinderBtn = advancedTexture.getControlByName("addCylinderBtn");
   const setLayerBtn = advancedTexture.getControlByName("setLayerBtn");
@@ -192,12 +219,7 @@ const createScene = async function () {
       undefined,
       ".stl"
     );
-
-    
-
     removeMesh(prevId);
-
-
     console.log("roundcorners");
   };
 
@@ -217,7 +239,7 @@ const createScene = async function () {
     let i;
     // Utwórz pola tekstowe dla X, Y, Z
     for (i = 0; i < 4; i++) {
-      const input = createTextField(`input${i}`, "X,Y,Z");
+      const input = createTextField(`input${i}`, "X,Y,Z ");
       modal.appendChild(input);
     }
 
@@ -226,7 +248,7 @@ const createScene = async function () {
     addButton.addEventListener("click", () => {
       const newField = createTextField(
         `input${modal.children.length}`,
-        "X,Y,Z"
+        "X,Y,Z "
       );
       modal.insertBefore(newField, addButton);
     });
@@ -236,12 +258,6 @@ const createScene = async function () {
     getValuesButton.textContent = "Pobierz wartości";
     getValuesButton.addEventListener("click", async () => {
       const inputValues = getModalInputValues(modal);
-
-
-
-
-
-
 
       let requestData = { points: JSON.parse(inputValues)['values']  };
       await fetch("http://localhost:8888/create/from/points", {
@@ -268,16 +284,6 @@ const createScene = async function () {
         undefined,
         ".stl"
       );
-
-
-
-
-
-
-
-
-
-
       console.log("Wartości z inputów:", inputValues);
     });
     getValuesButton.addEventListener('click', () => closeModal(modal));
@@ -338,6 +344,7 @@ const createScene = async function () {
     const pickResult = scene.pick(event.clientX, event.clientY);
     if (pickResult && pickResult.hit) {
       pickedMesh = pickResult.pickedMesh;
+      console.log(pickedMesh.name)
       updateSliders(pickedMesh);
       assignMeshName(pickedMesh);
       // dodaj material
@@ -398,21 +405,31 @@ const createScene = async function () {
 
 
     const jsonDataString = JSON.stringify(jsonData);
+    const blob = new Blob([jsonDataString], { type: 'text/plain' });
 
+    const downloadLink = document.createElement('a');
+    downloadLink.href = window.URL.createObjectURL(blob);
+    downloadLink.download = 'projectData.txt';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
 
     console.log("downloadProject");
     console.log(jsonDataString);
+    
+    
   };
 
-  //events
-  loadBtn.onPointerClickObservable.add(loadMesh);
-
+  
+  
   setLayerBtn.onPointerClickObservable.add(setLayer);
+  // scaleBtn.onPointerClickObservable.add(scaleGizmo);
+  // moveBtn.onPointerClickObservable.add(moveGizmo);
   // addLayerBtn.onPointerClickObservable.add(addLayer);
   addBoxBtn.onPointerClickObservable.add(() => addLayer("box"));
   addTorusBtn.onPointerClickObservable.add(() => addLayer("torus"));
   addCylinderBtn.onPointerClickObservable.add(() => addLayer("cylinder"));
-  addDecorationBtn.onPointerClickObservable.add(addDecoration);
+  addDecorationBtn.onPointerClickObservable.add(loadMesh);
   makeDec.onPointerClickObservable.add(showModal)
   roundBtn.onPointerClickObservable.add(roundCorners);
   clearBtn.onPointerClickObservable.add(removeMesh);
